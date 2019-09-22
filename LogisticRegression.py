@@ -99,19 +99,23 @@ class LogisticRegression:
     # gradient descent step
     def fit(self, X, y, learning_rate=0.05, iteration=50000):
         difference = 1.0
-        min_difference = 0.0001  # difference between w and w'
+        min_difference = 0.1  # difference between w and w'
         iteration_counter = 0
         cross_en = []
 
+
         while iteration_counter <= iteration and difference >= min_difference:
+
+
             gradient = self.gradient_cross_entropy(self.w, X, y)
             cost = self.cross_entropy(self.w, X, y)
             store_w = self.w
 
             self.w = self.w - learning_rate * gradient  # making parameters
             cross_en.append(cost)
-            difference = abs(self.w - store_w)
+            difference = np.sum(list(self.w - store_w))
             iteration_counter = iteration_counter + 1
+
 
         return self.w, cross_en
 
@@ -119,29 +123,35 @@ class LogisticRegression:
     # predicting the data points question!!!!!!!
     def predict(self, X):
 
-        prediction = np.zeros((1, X.shape[0]))
+        prediction = np.zeros(X.shape[0])
         for i in range(len(X.index)):
-            prediction[i] = 1 / (1 + np.exp(-np.dot(self.w, np.array(X.loc[i]))))
+
+            prediction[i] = 1 / (1 + np.exp(-np.dot(self.w, np.array(X.iloc[0][1:]))))
 
         prediction = [0 if pred < 0.5 else 1 for pred in prediction]
 
         return prediction
 
 
-    def evaluate_acc(X, y, prediction_y):
+    def evaluate_acc(self, y, prediction_y):
 
-        difference = np.array(y - prediction_y)
+        diff = np.array(y - prediction_y)
+        diff = list(diff)
         acc = 0
-        for diff in difference:
-            if diff != 0:
+        for d in diff:
+            if d != 0:
                 acc += 1
 
-        return acc / (difference.size() * 1.0)
+        return acc / (len(diff)*1.0)
 
 
 
 wine_df = pd.read_csv("winequality-red.csv", delimiter=";")
 wine_df["quality_modified"] = pd.to_numeric((wine_df["quality"] > 5) & (wine_df["quality"] < 11)).astype(int)
+
+# Standardize Data
+for column in wine_df.columns[0:11]:
+    wine_df[column] = (wine_df[column] - wine_df[column].mean()) / wine_df[column].std()
 
 # comparison_df = wine_df.groupby("quality_modified").mean()
 # comparison_df.T.plot(kind="bar")
@@ -155,7 +165,9 @@ lr_wine = LogisticRegression(np.random.rand(12))
 wine_df.insert(0, "Constant", 1)
 X = wine_df[wine_df.columns[0:12]]
 y = wine_df["quality_modified"]
-lr_wine.fit(X, y, learning_rate=0.05, iteration=50000)
+lr_wine.fit(X[0:1200], y[0:1200], learning_rate=0.05, iteration=50000)
+prediction = lr_wine.predict(X[1200:1600].reset_index())
+print(lr_wine.evaluate_acc(y[1200:1600], prediction))
 
 
 
