@@ -56,15 +56,17 @@ class LogisticRegression:
         iteration_counter = 0
         cross_en = []
 
-        while iteration_counter <= iteration and difference >= min_difference:
+        while iteration_counter <= iteration:
+           # and difference >= min_difference:
             gradient = self.gradient_cross_entropy(X, y)
             cost = self.cross_entropy(X, y)
             store_w = self.w
 
             self.w = store_w - learning_rate * gradient  # making parameters
             cross_en.append(cost)
-            difference = np.sum(list(self.w - store_w))
+            #difference = np.sum(list(self.w - store_w))
             iteration_counter = iteration_counter + 1
+
 
         return self.w, cross_en
 
@@ -96,6 +98,8 @@ class LogisticRegression:
             return (len(differences) - np.sum(np.abs(differences))) / len(differences)
 
 
+
+
 wine_df = pd.read_csv("winequality-red.csv", delimiter=";")
 wine_df["quality_modified"] = pd.to_numeric((wine_df["quality"] > 5) & (wine_df["quality"] < 11)).astype(int)
 
@@ -111,12 +115,32 @@ for column in wine_df.columns[0:11]:
 # plt.show()
 
 lr_wine = LogisticRegression(np.zeros((1, 12), float))
-
 wine_df.insert(0, "Constant", 1)
+
+wine_df_copy = wine_df.copy()
+wine_df_copy = wine_df_copy.drop(columns=["quality"])
+
 X = wine_df[wine_df.columns[0:12]]
 y = wine_df["quality_modified"]
-test1 = lr_wine.gradient_cross_entropy(X, y)
-test2 = lr_wine.fit(X[0:1200], y[0:1200], learning_rate=0.001, iteration=50000)
+#fit_results = lr_wine.fit(X[0:1200], y[0:1200], learning_rate=0.0001, iteration=20)
 prediction = lr_wine.predict(X[1200:1600])
 number = lr_wine.evaluate_acc(y[1200:1600], prediction)
-print(number)
+
+
+def k_fold_CV(data, model, k, learning_rate, iteration):
+
+    all_data = data.iloc[np.random.permutation(len(data))]
+    data_split = np.array_split(data, k)
+    accuracies = np.ones(k)
+
+    for i, data in enumerate(data_split):
+
+        training_data = pd.concat([all_data, data_split[i], data_split[i]]).drop_duplicates(keep=False)
+        model.fit(training_data[training_data.columns[0:12]], np.array(training_data[training_data.columns[12]]),
+                  learning_rate=learning_rate, iteration=iteration)
+        prediction = model.predict(data_split[i][data_split[i].columns[0:12]])
+        accuracies[i] = model.evaluate_acc(data_split[i][data_split[i].columns[12]], prediction)
+
+    return np.mean(accuracies)
+
+print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 10))
