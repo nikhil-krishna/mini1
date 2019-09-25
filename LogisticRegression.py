@@ -23,7 +23,13 @@ class LogisticRegression:
     def sigmoid(self, x):
         # The mapping of the function is in [0,1]
         value = np.dot(self.w, x)
-        return 1 / (1 + np.exp(-value))
+
+        if value >= 0:
+            z = np.exp(-value)
+            return 1 / (1+z)
+        else:
+            z = np.exp(value)
+            return z / (1+z)
 
 
     # Our Error function
@@ -31,6 +37,9 @@ class LogisticRegression:
         # Here is our cost function
         lost = 0
         for i in range(len(X.index)):
+
+            if self.sigmoid(np.array(X.iloc[i])) == 1 or self.sigmoid(np.array(X.iloc[i])) == 0:
+                continue
 
             lost += -(y[i] * np.log(self.sigmoid(np.array(X.iloc[i]))) + (1 - y[i]) *
                       np.log(1 - self.sigmoid(np.array(X.iloc[i]))))
@@ -122,10 +131,6 @@ wine_df_copy = wine_df_copy.drop(columns=["quality"])
 
 X = wine_df[wine_df.columns[0:12]]
 y = wine_df["quality_modified"]
-#fit_results = lr_wine.fit(X[0:1200], y[0:1200], learning_rate=0.0001, iteration=20)
-prediction = lr_wine.predict(X[1200:1600])
-number = lr_wine.evaluate_acc(y[1200:1600], prediction)
-
 
 def k_fold_CV(data, model, k, learning_rate, iteration):
 
@@ -143,4 +148,9 @@ def k_fold_CV(data, model, k, learning_rate, iteration):
 
     return np.mean(accuracies)
 
+print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.0001, 10))
 print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 10))
+print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.05, 10))
+print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.1, 10))
+print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 20))
+print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.0001, 30))
