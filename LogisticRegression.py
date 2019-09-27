@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 import matplotlib.pyplot as mp
+from itertools import chain, combinations
+import time
 
 # Logistic regression model
 # P(y=1|x)=1/(1+e^-a)
@@ -123,13 +125,16 @@ for column in wine_df.columns[0:11]:
 # scatter_matrix(wine_df, alpha=0.3)
 # plt.show()
 
-lr_wine = LogisticRegression(np.zeros((1, 12), float))
+lr_wine = LogisticRegression(np.zeros((1, 13), float))
 wine_df.insert(0, "Constant", 1)
+#wine_df.insert(12, "Interaction", wine_df["alcohol"]*wine_df["sulphates"])
+# Add second interaction term
+wine_df.insert(12, "Interaction 2", wine_df["total sulfur dioxide"]*wine_df["sulphates"])
 
 wine_df_copy = wine_df.copy()
 wine_df_copy = wine_df_copy.drop(columns=["quality"])
 
-X = wine_df[wine_df.columns[0:12]]
+X = wine_df[wine_df.columns[0:13]]
 y = wine_df["quality_modified"]
 
 def k_fold_CV(data, model, k, learning_rate, iteration):
@@ -141,16 +146,31 @@ def k_fold_CV(data, model, k, learning_rate, iteration):
     for i, data in enumerate(data_split):
 
         training_data = pd.concat([all_data, data_split[i], data_split[i]]).drop_duplicates(keep=False)
-        model.fit(training_data[training_data.columns[0:12]], np.array(training_data[training_data.columns[12]]),
+        model.fit(training_data[training_data.columns[0:len(data.columns)-1]], np.array(training_data[training_data.columns[len(data.columns)-1]]),
                   learning_rate=learning_rate, iteration=iteration)
-        prediction = model.predict(data_split[i][data_split[i].columns[0:12]])
-        accuracies[i] = model.evaluate_acc(data_split[i][data_split[i].columns[12]], prediction)
+        prediction = model.predict(data_split[i][data_split[i].columns[0:len(data.columns)-1]])
+        accuracies[i] = model.evaluate_acc(data_split[i][data_split[i].columns[len(data.columns)-1]], prediction)
 
     return np.mean(accuracies)
 
-print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.0001, 10))
-print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 10))
-print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.05, 10))
-print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.1, 10))
-print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 20))
-print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.0001, 30))
+
+
+
+
+
+
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.0001, 10)) # 0.7254565047021944
+
+
+
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.05, 10)) # 0.646007053291536
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.1, 10)) # 0.6466555642633228
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 20)) # 0.7254584639498433
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.0001, 30)) # 0.7385795454545455
+
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 10)) # 0.7504663009404389 - with second interaction term
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 15)) # 0.7517202194357366 - with second interaction term
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 25)) # 0.7523491379310345 - with second interaction term
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.01, 10)) # 0.6666457680250784 - with second interaction term
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.1, 10)) # 0.6504173197492162 - with second interaction term
+
