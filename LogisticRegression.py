@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import scipy as sp
-import matplotlib.pyplot as mp
-from itertools import chain, combinations
+import matplotlib.pyplot as plt
+from pandas.plotting import scatter_matrix
 import time
 
 # Logistic regression model
@@ -131,30 +131,47 @@ class LogisticRegression:
 wine_df = pd.read_csv("winequality-red.csv", delimiter=";")
 wine_df["quality_modified"] = pd.to_numeric((wine_df["quality"] > 5) & (wine_df["quality"] < 11)).astype(int)
 
-print(wine_df.describe())
+for i in wine_df.columns:
+    print(wine_df[i].describe())
+#comparison_df = wine_df.groupby("quality_modified").mean()
+# comparison_df[comparison_df.columns[0:6]].T.plot(kind="bar")
+# plt.xlabel("Feature")
+# plt.ylabel("Average Value across Class")
+# plt.xticks(fontsize=6, rotation=0)
+# plt.show()
+# comparison_df[comparison_df.columns[6:14]].T.plot(kind="bar")
+# plt.xlabel("Feature")
+# plt.ylabel("Value")
+# plt.xticks(fontsize=6, rotation=0)
+# plt.show()
+
+
+
 
 # Standardize Data
 for column in wine_df.columns[0:11]:
     wine_df[column] = (wine_df[column] - wine_df[column].mean()) / wine_df[column].std()
 
-# comparison_df = wine_df.groupby("quality_modified").mean()
-# comparison_df.T.plot(kind="bar")
+# scatter_matrix(wine_df[wine_df.columns[0:6]])
+# plt.xticks(fontsize=5)
+# plt.yticks(fontsize=5)
 # plt.show()
-
-# scatter_matrix(wine_df, alpha=0.3)
+#
+# scatter_matrix(wine_df[wine_df.columns[6:13]])
+# plt.xticks(fontsize=5)
+# plt.yticks(fontsize=5)
 # plt.show()
 
 lr_wine = LogisticRegression(np.zeros((1, 13), float))
 wine_df.insert(0, "Constant", 1)
-#wine_df.insert(12, "Interaction", wine_df["alcohol"]*wine_df["sulphates"])
-# Add second interaction term
+# Add interaction term
 wine_df.insert(12, "Interaction 2", wine_df["total sulfur dioxide"]*wine_df["sulphates"])
 
 wine_df_copy = wine_df.copy()
 wine_df_copy = wine_df_copy.drop(columns=["quality"])
 
-X = wine_df[wine_df.columns[0:13]]
 y = wine_df["quality_modified"]
+
 
 def k_fold_CV(data, model, k, learning_rate, iteration):
 
@@ -170,7 +187,7 @@ def k_fold_CV(data, model, k, learning_rate, iteration):
                   learning_rate=learning_rate, iteration=iteration)
         prediction = model.predict(data_split[i][data_split[i].columns[0:len(data.columns)-1]])
         accuracies[i] = model.evaluate_acc(data_split[i][data_split[i].columns[len(data.columns)-1]], prediction)
-        matrix += model.confusion_matrix(np.array(training_data[training_data.columns[len(data.columns)-1]]), prediction)
+        matrix += model.confusion_matrix(data_split[i][data_split[i].columns[len(data.columns)-1]], prediction)
 
     return np.mean(accuracies), matrix
 
@@ -180,18 +197,44 @@ def k_fold_CV(data, model, k, learning_rate, iteration):
 
 
 
-# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.0001, 10)) # 0.7254565047021944
+print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 10)) # 0.7254565047021944
+
+# times = [0,0,0,0,0,0,0]
+# start = time.time()
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.00001, 10)) # 0.7191927899686521
+# times[0] = time.time() - start
+# start = time.time()
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.0001, 10)) # 0.7379584639498432
+# times[1] = time.time() - start
+# start = time.time()
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 10)) # 0.751716300940439
+# times[2] = time.time() - start
+# start = time.time()
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.01, 10)) # 0.6666457680250784
+# times[3] = time.time() - start
+# start = time.time()
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.05, 10)) # 0.6522923197492163
+# times[4] = time.time() - start
+# start = time.time()
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.1, 10)) # 0.6641438087774294
+# times[5] = time.time() - start
+# start = time.time()
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.5, 10)) # 0.6522903605015673
+# times[6] = time.time() - start
+
+# learning_rates = [0.00001, 0.0001, 0.001, 0.01, 0.05, 0.1, 0.5]
+# times = [56.67494606971741, 58.5338819026947, 60.11971831321716, 58.255337953567505, 55.337260007858276, 49.810872077941895, 44.955501079559326]
+# plt.plot(learning_rates, times, 'o')
+# plt.xscale("log")
+# plt.xlabel("log(Learning Rate)")
+# plt.ylabel("Time (seconds)")
+# plt.show()
 
 
 
-# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.05, 10)) # 0.646007053291536
-# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.1, 10)) # 0.6466555642633228
-# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 20)) # 0.7254584639498433
-# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.0001, 30)) # 0.7385795454545455
-
-#print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 10)) # 0.7504663009404389 - with second interaction term
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 10)) # 0.7504663009404389 - with second interaction term
 # print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 15)) # 0.7517202194357366 - with second interaction term
-print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 25)) # 0.7523491379310345 - with second interaction term
+# print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 10)) # 0.7523491379310345 - with second interaction term
 # print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.01, 10)) # 0.6666457680250784 - with second interaction term
 # print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.1, 10)) # 0.6504173197492162 - with second interaction term
 
