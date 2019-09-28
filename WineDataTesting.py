@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from pandas.plotting import scatter_matrix
 import time
-from LR import *
 from LDA import *
 
 wine_df = pd.read_csv("winequality-red.csv", delimiter=";")
@@ -48,7 +47,7 @@ wine_df.insert(12, "Interaction 2", wine_df["total sulfur dioxide"]*wine_df["sul
 wine_df_copy = wine_df.copy()
 wine_df_copy = wine_df_copy.drop(columns=["quality"])
 
-lr_wine = LogisticRegression(np.zeros((1, 13), float))
+
 lda = LDA()
 
 # Test times for LDA model with wine dataset
@@ -56,11 +55,15 @@ start = time.time()
 times = [0,0,0,0,0]
 for i in range(5):
     res = k_fold_CV(wine_df_copy, lda, 5) # 0.737337382445141
+    print(res)
     times[i] = float(time.time()-start)
     start = time.time()
 
 print(np.mean(np.array(times)))
 
+
+from LogisticRegression import *
+lr_wine = LogisticRegression(np.zeros((1, 13), float))
 # Measure run time vs learning rate
 times = [0,0,0,0,0,0,0]
 start = time.time()
