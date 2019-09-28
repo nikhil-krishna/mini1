@@ -62,7 +62,7 @@ for i in range(5):
 print(np.mean(np.array(times)))
 
 
-from LogisticRegression import *
+from LR import *
 lr_wine = LogisticRegression(np.zeros((1, 13), float))
 # Measure run time vs learning rate
 times = [0,0,0,0,0,0,0]
