@@ -62,6 +62,7 @@ class LogisticRegression:
         min_difference = 0.1  # difference between w and w'
         iteration_counter = 0
         cross_en = []
+        costList = []
 
         while iteration_counter <= iteration:
            # and difference >= min_difference:
@@ -71,11 +72,12 @@ class LogisticRegression:
 
             self.w = store_w - learning_rate * gradient  # making parameters
             cross_en.append(cost)
+            costList.append(cost)
             #difference = np.sum(list(self.w - store_w))
             iteration_counter = iteration_counter + 1
 
 
-        return self.w, cross_en
+        return self.w, cross_en, costList
 
 
     # predicting the data points question!!!!!!!
