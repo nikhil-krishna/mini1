@@ -104,5 +104,3 @@ print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 15)) # 0.7517202194357366 - wit
 print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.001, 10)) # 0.7523491379310345 - with second interaction term
 print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.01, 10)) # 0.6666457680250784 - with second interaction term
 print(k_fold_CV(wine_df_copy, lr_wine, 5, 0.1, 10)) # 0.6504173197492162 - with second interaction term
-
-

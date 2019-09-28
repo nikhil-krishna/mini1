@@ -162,4 +162,3 @@ def k_fold_CV(data, model, k):
         matrix += model.confusion_matrix(data_split[i][data_split[i].columns[len(data.columns) - 1]], prediction)
 
     return np.mean(accuracies), matrix
-
